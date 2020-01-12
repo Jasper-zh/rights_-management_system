@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.hao.mapper.MenuMapper" >
+  <resultMap id="BaseResultMap" type="com.hao.domain.Menu" >
+    <id column="mid" property="id" jdbcType="BIGINT" />
+    <result column="title" property="text" jdbcType="VARCHAR" />
+    <result column="url" property="url" jdbcType="VARCHAR" />
+    <association property="parentMenu" javaType="com.hao.domain.Menu" columnPrefix="p_">
+      <result column="mid" property="id"/>
+      <result column="title" property="text"/>
+      <result column="url" property="url"/>
+    </association>
+    <association property="permission" javaType="com.hao.domain.Permission">
+      <result column="pid" property="pid"/>
+      <result column="pname" property="pname"/>
+      <result column="presource" property="presource"/>
+    </association>
+    <collection property="children" ofType="com.hao.domain.Menu" column="mid" select="childrenSelect"/>
+  </resultMap>
+
+  <select id="getTreeData" resultMap="BaseResultMap">
+    select m.mid,m.title,m.url,p.pid,p.pname,p.presource from menu m left join permission p on
+    m.permission_id=p.pid
+    where parent_mid is null
+  </select>
+  <select id="childrenSelect" resultMap="BaseResultMap">
+    select m.mid,m.title,m.url,p.pid,p.pname,p.presource from menu m left join permission p on
+    m.permission_id=p.pid
+    where parent_mid = #{id}
+  </select>
+
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from menu
+    where mid = #{id,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="com.hao.domain.Menu" >
+    insert into menu (mid, title, url, 
+      parent_mid)
+    values (#{id,jdbcType=BIGINT}, #{text,jdbcType=VARCHAR}, #{url,jdbcType=VARCHAR},
+      #{parentMenu.id,jdbcType=BIGINT})
+  </insert>
+  <update id="updateByPrimaryKey" parameterType="com.hao.domain.Menu" >
+    update menu
+    set title = #{text,jdbcType=VARCHAR},
+      url = #{url,jdbcType=VARCHAR},
+      parent_mid = #{parentMenu.id,jdbcType=BIGINT}
+    where mid = #{id,jdbcType=BIGINT}
+  </update>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select mid, title, url, parent_mid
+    from menu
+    where mid = #{id,jdbcType=BIGINT}
+  </select>
+  <select id="selectAll" resultMap="BaseResultMap" >
+      select i.mid, i.title, i.url,
+       p.mid p_mid, p.title p_title, p.url p_url
+      from menu i left join menu p
+      on i.parent_mid = p.mid order by i.mid desc
+  </select>
+
+</mapper>

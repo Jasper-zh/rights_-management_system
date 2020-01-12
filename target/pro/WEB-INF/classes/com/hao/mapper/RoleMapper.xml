@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.hao.mapper.RoleMapper" >
+  <resultMap id="BaseResultMap" type="com.hao.domain.Role" >
+    <id column="rid" property="rid" jdbcType="BIGINT" />
+    <result column="rnum" property="rnum" jdbcType="VARCHAR" />
+    <result column="rname" property="rname" jdbcType="VARCHAR" />
+  </resultMap>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from role
+    where rid = #{rid,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="com.hao.domain.Role" useGeneratedKeys="true" keyProperty="rid">
+    insert into role (rid, rnum, rname
+      )
+    values (#{rid,jdbcType=BIGINT}, #{rnum,jdbcType=VARCHAR}, #{rname,jdbcType=VARCHAR}
+      )
+  </insert>
+  <insert id="insertRoleAndPermission">
+    insert into role_per values(#{rid},#{pid})
+  </insert>
+  <update id="updateByPrimaryKey" parameterType="com.hao.domain.Role" >
+    update role
+    set rnum = #{rnum,jdbcType=VARCHAR},
+      rname = #{rname,jdbcType=VARCHAR}
+    where rid = #{rid,jdbcType=BIGINT}
+  </update>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select rid, rnum, rname
+    from role
+    where rid = #{rid,jdbcType=BIGINT}
+  </select>
+  <select id="selectAll" resultMap="BaseResultMap" >
+    select rid, rnum, rname
+    from role order by rid desc
+  </select>
+  <select id="getRoleByEid" resultType="java.lang.Long">
+    select rid from role_emp where eid = #{eid}
+  </select>
+  <delete id="deleteRolePermission">
+    delete from role_per where rid=#{rid}
+  </delete>
+</mapper>

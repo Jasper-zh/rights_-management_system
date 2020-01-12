@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.hao.mapper.EmployeeMapper" >
+  <resultMap id="BaseResultMap" type="com.hao.domain.Employee" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="username" property="username" jdbcType="VARCHAR" />
+    <result column="entryTime" property="entryTime" jdbcType="TIMESTAMP" />
+    <result column="phone" property="phone" jdbcType="VARCHAR" />
+    <result column="email" property="email" jdbcType="VARCHAR" />
+    <result column="state" property="state" jdbcType="TINYINT" />
+    <result column="admin" property="admin" jdbcType="TINYINT" />
+    <result column="password" property="password" jdbcType="VARCHAR" />
+    <association property="department" columnPrefix="d_" javaType="com.hao.domain.Department">
+      <result column="id" property="id"/>
+      <result column="name" property="name"/>
+    </association>
+  </resultMap>
+  <select id="getEmployeeByName" resultType="com.hao.domain.Employee">
+    select * from employee where username = #{username}
+  </select>
+  <insert id="insertEmployeeAndRole">
+    insert into role_emp(eid, rid) values(#{id},#{rid})
+  </insert>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from employee
+    where id = #{id,jdbcType=INTEGER}
+  </delete>
+  <insert id="insert" parameterType="com.hao.domain.Employee" useGeneratedKeys="true" keyProperty="id">
+    insert into employee (id,username, entryTime,
+      phone, email, state, 
+      admin, dep_id,password)
+    values (#{id},#{username,jdbcType=VARCHAR}, #{entryTime,jdbcType=TIMESTAMP},
+      #{phone,jdbcType=VARCHAR}, #{email,jdbcType=VARCHAR}, #{state,jdbcType=TINYINT}, 
+      #{admin,jdbcType=TINYINT}, #{department.id,jdbcType=INTEGER},#{password})
+  </insert>
+  <delete id="deleteEmployeeRole">
+    delete from role_emp where eid=#{id}
+  </delete>
+  <update id="updateByPrimaryKey" parameterType="com.hao.domain.Employee" >
+    update employee
+    set username = #{username,jdbcType=VARCHAR},
+      entryTime = #{entryTime,jdbcType=TIMESTAMP},
+      phone = #{phone,jdbcType=VARCHAR},
+      email = #{email,jdbcType=VARCHAR},
+      state = #{state,jdbcType=TINYINT},
+      admin = #{admin,jdbcType=TINYINT},
+      dep_id = #{department.id}
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+  <update id="updateState" parameterType="java.lang.Integer">
+    update employee
+    set state=false
+    where id=#{id} 
+  </update>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select id, username, entryTime, phone, email, state, admin, dep_id
+    from employee
+    where id = #{id,jdbcType=INTEGER}
+  </select>
+
+  <select id="selectAll" resultMap="BaseResultMap" >
+    select e.id, e.username, e.entryTime, e.phone, e.email, e.state, e.admin, d.id d_id,d.name d_name
+    from employee e left join department d on e.dep_id = d.id order by e.id desc
+    <include refid="where_sql"></include>
+  </select>
+  <select id="getRolesByEid" resultType="role">
+     select r.rnum from role_emp re left join role r on re.rid = r.rid where eid = #{id};
+  </select>
+  <select id="getPermissionByEid" resultType="string">
+    select p.presource from permission p left join role_per rp on p.pid = rp.pid where rid in(select rid from role_emp where eid = #{id});
+  </select>
+  <sql id="where_sql">
+    <where>
+      <if test="keyword !=null and keyword!=''">
+        and e.username like concat('%',#{keyword},'%')
+        or e.phone like concat('%',#{keyword},'%')
+        or e.email like concat('%',#{keyword},'%')
+      </if>
+    </where>
+  </sql>
+</mapper>
